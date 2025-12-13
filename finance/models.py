@@ -1,4 +1,6 @@
 from django.db import models
+from django.conf import settings
+from django.db.models import Sum
 
 
 class TimeStampedModel(models.Model):
@@ -33,8 +35,29 @@ class Category(TimeStampedModel):
     def __str__(self):
         return f"{self.name} ({self.get_type_display()})"
 
+class Customer(TimeStampedModel):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="customer_profile",
+    )
+    full_name = models.CharField(max_length=150, blank=True)
+    national_id = models.CharField(max_length=50, blank=True)
+    phone_number = models.CharField(max_length=50, blank=True)
+
+    class Meta:
+        ordering = ["full_name", "id"]
+
+    def __str__(self):
+        return self.full_name or self.user.username
+
 
 class Account(TimeStampedModel):
+    customer = models.ForeignKey(
+        Customer,
+        on_delete=models.CASCADE,
+        related_name="accounts",
+    )
     name = models.CharField(max_length=100)
     initial_balance = models.DecimalField(
         max_digits=12,
@@ -53,7 +76,7 @@ class Account(TimeStampedModel):
         ordering = ["name"]
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.currency})"
 
 
 class Transaction(TimeStampedModel):
@@ -84,3 +107,76 @@ class Transaction(TimeStampedModel):
     @property
     def is_expense(self):
         return self.category.type == Category.EXPENSE
+
+class LedgerAccount(TimeStampedModel):
+    ASSET = "asset"
+    LIABILITY = "liability"
+    EQUITY = "equity"
+    INCOME = "income"
+    EXPENSE = "expense"
+
+    TYPES = [
+        (ASSET, "Asset"),
+        (LIABILITY, "Liability"),
+        (EQUITY, "Equity"),
+        (INCOME, "Income"),
+        (EXPENSE, "Expense"),
+    ]
+
+    customer = models.ForeignKey("Customer", on_delete=models.CASCADE, related_name="ledger_accounts")
+    name = models.CharField(max_length=120)
+    type = models.CharField(max_length=12, choices=TYPES)
+
+    # برای لینک دادن به Account فعلی (اختیاری ولی کاربردی)
+    bank_account = models.OneToOneField(
+        "Account",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="ledger_account",
+    )
+
+    def balance(self):
+        totals = self.lines.aggregate(
+            debit_sum=Sum("debit"),
+            credit_sum=Sum("credit"),
+        )
+        debit = totals["debit_sum"] or 0
+        credit = totals["credit_sum"] or 0
+
+        if self.type in [self.ASSET, self.EXPENSE]:
+            return debit - credit
+        return credit - debit
+    class Meta:
+        unique_together = [("customer", "name")]
+        ordering = ["type", "name"]
+
+    def __str__(self):
+        return f"{self.name} ({self.get_type_display()})"
+
+
+class JournalEntry(TimeStampedModel):
+    customer = models.ForeignKey("Customer", on_delete=models.CASCADE, related_name="journal_entries")
+    date = models.DateField()
+    memo = models.CharField(max_length=255, blank=True)
+
+    class Meta:
+        ordering = ["-date", "-created_at"]
+
+    def __str__(self):
+        return f"JE#{self.id} {self.date} {self.memo}"
+
+
+class LedgerLine(TimeStampedModel):
+    entry = models.ForeignKey(JournalEntry, on_delete=models.CASCADE, related_name="lines")
+    account = models.ForeignKey(LedgerAccount, on_delete=models.PROTECT, related_name="lines")
+
+    # فقط یکی از این‌ها باید پر باشد
+    debit = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    credit = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    class Meta:
+        ordering = ["id"]
+
+    def __str__(self):
+        return f"{self.account} D:{self.debit} C:{self.credit}"
