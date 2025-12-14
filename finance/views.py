@@ -1,9 +1,12 @@
-from django.shortcuts import render, redirect
-from django.db.models import Sum
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from .form import TransactionForm
-from .models import Transaction, Category, Account
+from django.db.models import Sum
+from django.shortcuts import render, redirect
 
+from .form import TransferForm, TransactionForm
+from .models import Account, Category, Transaction
+from finance.services.exceptions import InsufficientFundsError
+from finance.services.inter_customer_transfers import transfer_to_national_id
 def get_current_customer(user):
     return getattr(user, "customer_profile", None)
 
@@ -80,3 +83,43 @@ def add_transaction(request):
         form = TransactionForm(customer=customer)
 
     return render(request, "finance/transaction_form.html", {"form": form})
+
+
+@login_required
+def new_transfer(request):
+    customer = get_current_customer(request.user)
+    if customer is None:
+        messages.error(request, "Customer profile not found.")
+        return redirect("finance:dashboard")
+
+    accounts_qs = Account.objects.filter(customer=customer, is_active=True).order_by("name")
+
+    if request.method == "POST":
+        form = TransferForm(request.POST, accounts_qs=accounts_qs)
+        if form.is_valid():
+            from_account = form.cleaned_data["from_account"]
+            recipient_national_id = form.cleaned_data["recipient_national_id"]
+            amount = form.cleaned_data["amount"]
+            date = form.cleaned_data["date"]
+            memo = form.cleaned_data["memo"]
+
+            try:
+                transfer_to_national_id(
+                    sender=customer,
+                    from_account=from_account,
+                    recipient_national_id=recipient_national_id,
+                    amount=amount,
+                    date=date,
+                    memo=memo,
+                )
+                messages.success(request, "Transfer completed successfully.")
+                return redirect("finance:dashboard")
+            except InsufficientFundsError:
+                messages.error(request, "Insufficient funds.")
+            except ValueError:
+
+                messages.error(request, "Transfer failed. Check recipient and inputs.")
+    else:
+        form = TransferForm(accounts_qs=accounts_qs)
+
+    return render(request, "finance/transfer_form.html", {"form": form})

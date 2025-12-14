@@ -42,7 +42,8 @@ class Customer(TimeStampedModel):
         related_name="customer_profile",
     )
     full_name = models.CharField(max_length=150, blank=True)
-    national_id = models.CharField(max_length=50, blank=True)
+    national_id = models.CharField(max_length=50, null=True, blank=True, unique=True)
+
     phone_number = models.CharField(max_length=50, blank=True)
 
     class Meta:

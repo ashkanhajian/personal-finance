@@ -5,8 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1e8ed3a1-d263-482b-b7e0-15871c315a64" name="Changes" comment="Hello world">
-      <change afterPath="$PROJECT_DIR$/finance/services/exceptions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/finance/services/Transfer.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/services/Transfer.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/finance/services/inter_customer_transfers.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/finance/services/utils.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/finance/templates/finance/transfer_form.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finance/form.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/form.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finance/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finance/templates/finance/base.html" beforeDir="false" afterPath="$PROJECT_DIR$/finance/templates/finance/base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finance/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/finance/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/finance/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -111,7 +118,7 @@
       <workItem from="1765387105692" duration="2202000" />
       <workItem from="1765451847435" duration="2586000" />
       <workItem from="1765593533954" duration="1143000" />
-      <workItem from="1765674322632" duration="299000" />
+      <workItem from="1765674322632" duration="2070000" />
     </task>
     <task id="LOCAL‎−۰۰۰۰۱" summary="Hello world">
       <option name="closed" value="true" />
@@ -141,7 +148,14 @@
       <option name="presentableId" value="LOCAL‎−۰۰۰۰۴" />
       <updated>1765674523498</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL‎−۰۰۰۰۵" summary="Hello world">
+      <option name="closed" value="true" />
+      <created>1765674695694</created>
+      <option name="number" value="LOCAL‎−۰۰۰۰۵" />
+      <option name="presentableId" value="LOCAL‎−۰۰۰۰۵" />
+      <updated>1765674695694</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

@@ -1,0 +1,23 @@
+{% extends "finance/base.html" %}
+
+{% block title %}New Transfer{% endblock %}
+
+{% block content %}
+  <h1 class="mb-4">New Transfer</h1>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-info">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="row">
+    <div class="col-md-6">
+      <form method="post" class="card card-body">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn btn-primary" type="submit">Submit Transfer</button>
+      </form>
+    </div>
+  </div>
+{% endblock %}
