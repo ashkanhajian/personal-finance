@@ -15,45 +15,44 @@ def get_current_customer(user):
 def dashboard(request):
     customer = get_current_customer(request.user)
     if customer is None:
-        # فعلاً ساده: اگر Customer نداشت، داشبورد خالی نشان بده
-        transactions = Transaction.objects.none()
-        income_total = 0
-        expense_total = 0
+        qs = Transaction.objects.none()
     else:
         qs = Transaction.objects.filter(account__customer=customer)
 
-        income_total = (
-            qs.filter(category__type=Category.INCOME)
-            .aggregate(total=Sum("amount"))["total"]
-            or 0
-        )
+    income_total = (
+        qs.filter(category__type=Category.INCOME)
+        .aggregate(total=Sum("amount"))["total"]
+        or 0
+    )
 
-        expense_total = (
-            qs.filter(category__type=Category.EXPENSE)
-            .aggregate(total=Sum("amount"))["total"]
-            or 0
-        )
-
-        transactions = (
-            qs.select_related("category", "account")
-            .order_by("-date", "-created_at")[:20]
-        )
+    expense_total = (
+        qs.filter(category__type=Category.EXPENSE)
+        .aggregate(total=Sum("amount"))["total"]
+        or 0
+    )
 
     net_total = income_total - expense_total
 
+    # گزارش‌ها را روی qs (بدون slice) بساز
     expense_by_category = (
-        transactions.filter(category__type=Category.EXPENSE)
+        qs.filter(category__type=Category.EXPENSE)
         .values("category__name")
         .annotate(total=Sum("amount"))
         .order_by("-total")
-    ) if customer else []
+    )
 
     income_by_category = (
-        transactions.filter(category__type=Category.INCOME)
+        qs.filter(category__type=Category.INCOME)
         .values("category__name")
         .annotate(total=Sum("amount"))
         .order_by("-total")
-    ) if customer else []
+    )
+
+    # فقط لیست اخیر را slice کن
+    transactions = (
+        qs.select_related("category", "account")
+        .order_by("-date", "-created_at")[:20]
+    )
 
     context = {
         "income_total": income_total,
