@@ -180,3 +180,22 @@ class LedgerLine(TimeStampedModel):
 
     def __str__(self):
         return f"{self.account} D:{self.debit} C:{self.credit}"
+
+class Transfer(TimeStampedModel):
+    customer = models.ForeignKey("Customer", on_delete=models.CASCADE, related_name="transfers")
+    from_account = models.ForeignKey(
+        "Account", on_delete=models.PROTECT, related_name="outgoing_transfers"
+    )
+    to_account = models.ForeignKey(
+        "Account", on_delete=models.PROTECT, related_name="incoming_transfers"
+    )
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    date = models.DateField()
+    memo = models.CharField(max_length=255, blank=True)
+
+    journal_entry = models.OneToOneField(
+        "JournalEntry", on_delete=models.PROTECT, null=True, blank=True
+    )
+
+    def __str__(self):
+        return f"{self.from_account} → {self.to_account} ({self.amount})"
